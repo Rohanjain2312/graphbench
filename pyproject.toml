@@ -60,6 +60,9 @@ gradio = "^4.31.0"
 pyvis = "^0.3.2"
 plotly = "^5.22.0"
 
+# ML utilities
+scikit-learn = "^1.4.0"
+
 # Utilities
 tqdm = "^4.66.0"
 requests = "^2.31.0"
@@ -98,7 +101,14 @@ python_functions = ["test_*"]
 addopts = "-v --tb=short -m 'not slow'"
 markers = [
     "slow: marks tests that require model downloads or GPU (skip with -m 'not slow')",
+    "gnn: marks tests that load torch/torch_geometric (conflicts with FAISS on Mac ARM)",
 ]
+
+# Mac ARM note: FAISS and torch_geometric cannot coexist in the same process on
+# Mac ARM due to native library conflicts. Run test groups separately on Mac:
+#   pytest tests/ --ignore=tests/test_gnn_model.py   (FAISS + ingestion + pipelines)
+#   pytest tests/test_gnn_model.py                   (GNN model tests)
+# CI (Ubuntu) runs all tests together without issue.
 
 [build-system]
 requires = ["poetry-core"]

@@ -6,6 +6,7 @@ Provides:
 - sample_questions: a few HotpotQA-style question/answer dicts.
 - tiny_embeddings: 5 random L2-normalised float32 embeddings for FAISS tests.
 - mock_neo4j_client: Neo4jClient with driver mocked out (no live DB needed).
+
 """
 
 from unittest.mock import MagicMock, patch

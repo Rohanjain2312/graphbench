@@ -8,11 +8,14 @@ similarity. Used exclusively for vector search — Neo4j handles graph traversal
 import json
 import logging
 from pathlib import Path
+from typing import TYPE_CHECKING
 
-import faiss
 import numpy as np
 
 from graphbench.utils.config import settings
+
+if TYPE_CHECKING:
+    import faiss as faiss_type
 
 logger = logging.getLogger(__name__)
 
@@ -31,7 +34,7 @@ class FAISSClient:
 
     def __init__(
         self,
-        index: faiss.IndexFlatIP,
+        index: "faiss_type.IndexFlatIP",
         id_map: dict[int, str],
     ) -> None:
         """Initialise with a pre-built index and integer-to-entity mapping.
@@ -79,6 +82,8 @@ class FAISSClient:
         if not id_map_file.exists():
             raise FileNotFoundError(f"id_map not found: {id_map_file}")
 
+        import faiss  # noqa: PLC0415 — lazy to avoid Mac FAISS+torch conflict
+
         index = faiss.read_index(str(faiss_file))
         with id_map_file.open("r", encoding="utf-8") as f:
             raw: dict[str, str] = json.load(f)
@@ -106,6 +111,8 @@ class FAISSClient:
         Returns:
             Initialised FAISSClient instance.
         """
+        import faiss  # noqa: PLC0415 — lazy to avoid Mac FAISS+torch conflict
+
         dim = embeddings.shape[1]
         index = faiss.IndexFlatIP(dim)
         index.add(embeddings.astype(np.float32))

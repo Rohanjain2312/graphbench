@@ -6,11 +6,12 @@ IndexFlatIP FAISS index. Persists two files:
 - {path}_id_map.json    — {str(int_id): entity_string} mapping for result resolution
 """
 
+from __future__ import annotations
+
 import json
 import logging
 from pathlib import Path
 
-import faiss
 import numpy as np
 
 from graphbench.utils.config import settings
@@ -47,7 +48,7 @@ def build_and_save_index(
     embeddings: np.ndarray,
     *,
     index_path: Path | None = None,
-) -> faiss.IndexFlatIP:
+) -> faiss.IndexFlatIP:  # noqa: F821
     """Build a FAISS IndexFlatIP from embeddings and persist to disk.
 
     Saves two files:
@@ -70,6 +71,8 @@ def build_and_save_index(
     resolved = Path(index_path or settings.faiss_index_path)
     resolved.parent.mkdir(parents=True, exist_ok=True)
 
+    import faiss  # noqa: PLC0415 — lazy to avoid Mac FAISS+torch conflict
+
     index = faiss.IndexFlatIP(settings.embedding_dim)
     index.add(embeddings)
     logger.info(
@@ -80,7 +83,7 @@ def build_and_save_index(
 
     # Persist binary index
     faiss_file = resolved.with_suffix(".faiss")
-    faiss.write_index(index, str(faiss_file))
+    faiss.write_index(index, str(faiss_file))  # faiss already imported above
     logger.info("Saved FAISS index → %s", faiss_file)
 
     # Persist id_map: JSON requires string keys
