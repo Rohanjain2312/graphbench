@@ -68,11 +68,11 @@ FAISS_INDEX_PATH, CHECKPOINT_DIR           → path overrides
 ## Phase Status (update this as you complete phases)
 - Phase 1 — Foundation:        [x] COMPLETE
 - Phase 2 — Data Pipeline:     [x] COMPLETE
-- Phase 3 — GNN:               [ ] NOT STARTED
-- Phase 4 — Pipelines:         [ ] NOT STARTED
-- Phase 5 — Benchmark:         [ ] NOT STARTED
-- Phase 6 — Notebook:          [ ] NOT STARTED
-- Phase 7 — Demo:              [ ] NOT STARTED
+- Phase 3 — GNN:               [x] COMPLETE
+- Phase 4 — Pipelines:         [x] COMPLETE
+- Phase 5 — Benchmark:         [x] COMPLETE
+- Phase 6 — Notebook:          [x] COMPLETE
+- Phase 7 — Demo:              [x] COMPLETE
 - Phase 8 — Polish:            [ ] NOT STARTED
 
 ## Important Decisions Already Made (do not re-debate these)
