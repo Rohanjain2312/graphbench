@@ -98,7 +98,7 @@ testpaths = ["tests"]
 python_files = ["test_*.py"]
 python_classes = ["Test*"]
 python_functions = ["test_*"]
-addopts = "-v --tb=short -m 'not slow'"
+addopts = "-v --tb=short -m 'not slow and not gnn'"
 markers = [
     "slow: marks tests that require model downloads or GPU (skip with -m 'not slow')",
     "gnn: marks tests that load torch/torch_geometric (conflicts with FAISS on Mac ARM)",
@@ -106,9 +106,11 @@ markers = [
 
 # Mac ARM note: FAISS and torch_geometric cannot coexist in the same process on
 # Mac ARM due to native library conflicts. Run test groups separately on Mac:
-#   pytest tests/ --ignore=tests/test_gnn_model.py   (FAISS + ingestion + pipelines)
-#   pytest tests/test_gnn_model.py                   (GNN model tests)
-# CI (Ubuntu) runs all tests together without issue.
+#   pytest tests/ --ignore=tests/test_gnn_model.py          (FAISS + ingestion + pipelines, no @gnn)
+#   pytest tests/test_gnn_model.py -m gnn                   (GNN model + @gnn pipeline tests)
+# The default addopts excludes both 'slow' and 'gnn' marks so the first group
+# runs cleanly with `poetry run pytest`.
+# CI (Ubuntu) uses: pytest tests/ -m 'not slow'  (all tests including gnn)
 
 [build-system]
 requires = ["poetry-core"]

@@ -18,11 +18,10 @@ from collections import Counter
 from typing import TYPE_CHECKING
 
 import numpy as np
-import torch
-from torch_geometric.data import Data
 
 if TYPE_CHECKING:
     import networkx as nx
+    from torch_geometric.data import Data
 
 logger = logging.getLogger(__name__)
 
@@ -89,6 +88,9 @@ def subgraph_to_pyg(
             n_missing,
             n_nodes,
         )
+
+    import torch  # noqa: PLC0415 — lazy to avoid Mac FAISS+torch conflict
+    from torch_geometric.data import Data  # noqa: PLC0415
 
     x = torch.tensor(np.stack(x_rows), dtype=torch.float)
 
