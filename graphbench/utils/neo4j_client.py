@@ -178,7 +178,7 @@ class Neo4jClient:
             Relation is the Neo4j relationship type string.
         """
         k = hops if hops is not None else settings.subgraph_hops
-        rel_pattern = "-[*1..$k]->" if directed else "-[*1..$k]-"
+        rel_pattern = f"-[*1..{k}]->" if directed else f"-[*1..{k}]-"
         cypher = f"""
         MATCH path = (seed:Entity {{name: $name}}){rel_pattern}(neighbor:Entity)
         UNWIND relationships(path) AS rel
@@ -187,7 +187,7 @@ class Neo4jClient:
             type(rel)           AS relation,
             endNode(rel).name   AS object
         """
-        results = self.execute_read(cypher, name=entity_name, k=k)
+        results = self.execute_read(cypher, name=entity_name)
         return [(r["subject"], r["relation"], r["object"]) for r in results]
 
     def get_subgraph_multi(
