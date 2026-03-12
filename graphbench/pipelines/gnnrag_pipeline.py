@@ -120,9 +120,14 @@ class GNNRAGPipeline(Pipeline):
         # ── Step 4: score all edges with GAT ────────────────────────────
         import torch  # noqa: PLC0415
 
+        # Move tensors to the same device as the model weights
+        model_device = next(self._model.parameters()).device
+        x = data.x.to(model_device)
+        edge_index = data.edge_index.to(model_device)
+
         self._model.eval()
         with torch.no_grad():
-            scores = self._model.score_edges(data.x, data.edge_index, data.edge_index)
+            scores = self._model.score_edges(x, edge_index, edge_index)
 
         # ── Step 5: select top-N edges by score ─────────────────────────
         n_edges = data.edge_index.shape[1]
