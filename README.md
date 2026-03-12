@@ -4,7 +4,7 @@
 [![PyPI](https://img.shields.io/pypi/v/graphbench-kg)](https://pypi.org/project/graphbench-kg/)
 [![Python 3.10+](https://img.shields.io/badge/python-3.10+-blue.svg)](https://www.python.org/downloads/)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
-[![HuggingFace Demo](https://img.shields.io/badge/%F0%9F%A4%97%20HuggingFace-Demo-orange)](https://huggingface.co/spaces/rohanjain2312/graphbench)
+[![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/Rohanjain2312/graphbench/blob/main/notebooks/graphbench_babelscape.ipynb)
 
 **GraphBench** is an open-source Python library that benchmarks two graph-based RAG
 pipelines head-to-head on multi-hop question answering.
@@ -15,7 +15,37 @@ pipelines head-to-head on multi-hop question answering.
 | **GNN-RAG** | 3-layer GAT (PyTorch Geometric) + Mistral-7B |
 
 Dataset: 500 HotpotQA distractor questions (250 bridge, 250 comparison)
-Knowledge Graph: 50k REBEL triples in Neo4j AuraDB
+Knowledge Graph: ~60k REBEL triples (Babelscape/rebel-dataset) in Neo4j AuraDB
+
+---
+
+## Notebook
+
+The full end-to-end pipeline — data ingestion, GNN training, benchmarking, and results
+analysis — runs in a single Google Colab notebook with all output cells pre-populated.
+
+[![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/Rohanjain2312/graphbench/blob/main/notebooks/graphbench_babelscape.ipynb)
+
+> Recruiters: click the badge above to view the fully executed notebook with results —
+> no account or GPU required to read the outputs.
+
+---
+
+## Benchmark Results
+
+500 HotpotQA distractor questions · seed=42 · Mistral-7B-Instruct-v0.2 (fp16) · 60k REBEL triples
+
+| Metric | GraphRAG | GNN-RAG |
+|--------|:--------:|:-------:|
+| Exact Match (EM) | 3.2% | **5.0%** |
+| Token F1 | 10.5% | **12.8%** |
+| Latency p50 (ms) | 5,555 | **5,344** |
+| Latency p95 (ms) | 6,388 | **6,199** |
+
+GNN-RAG outperforms GraphRAG on all four metrics. The gap is largest on bridge questions
+(7.2% vs 3.6% EM), where multi-hop graph traversal benefits most from learned edge scoring.
+
+Full results and per-type breakdown: [docs/benchmark_results.md](docs/benchmark_results.md)
 
 ---
 
@@ -75,24 +105,6 @@ print(gnnrag.answer("Where was Marie Curie born?").predicted_answer)
 
 ---
 
-## Benchmark Results
-
-500 HotpotQA distractor questions · seed=42 · Mistral-7B-Instruct-v0.2 (fp16) · 60k REBEL triples
-
-| Metric | GraphRAG | GNN-RAG |
-|--------|:--------:|:-------:|
-| Exact Match (EM) | 3.2% | **5.0%** |
-| Token F1 | 10.5% | **12.8%** |
-| Latency p50 (ms) | 5,555 | **5,344** |
-| Latency p95 (ms) | 6,388 | **6,199** |
-
-GNN-RAG outperforms GraphRAG on all four metrics. The gap is largest on bridge questions
-(7.2% vs 3.6% EM), where multi-hop graph traversal benefits most from learned edge scoring.
-
-Full results and per-type breakdown: [docs/benchmark_results.md](docs/benchmark_results.md)
-
----
-
 ## Project Structure
 
 ```
@@ -104,8 +116,7 @@ graphbench/
 │   ├── community/       # Louvain community detection and summarization
 │   ├── benchmark/       # HotpotQA loader, evaluator, metrics
 │   └── utils/           # Neo4j client, FAISS client, LLM client, config
-├── notebooks/           # End-to-end Colab notebook
-├── demo/                # Gradio HuggingFace Spaces demo
+├── notebooks/           # End-to-end Colab notebooks (with pre-run outputs)
 ├── tests/               # Pytest test suite
 └── docs/                # Documentation
 ```
@@ -116,7 +127,7 @@ graphbench/
 
 - Python 3.10+
 - Neo4j AuraDB Free (or local Neo4j)
-- GPU recommended for GNN training (Colab Pro)
+- GPU recommended for GNN training and LLM inference (Google Colab Pro)
 - See `.env.example` for required environment variables
 
 ---
