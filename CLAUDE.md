@@ -73,7 +73,7 @@ FAISS_INDEX_PATH, CHECKPOINT_DIR           → path overrides
 - Phase 5 — Benchmark:         [x] COMPLETE
 - Phase 6 — Notebook:          [x] COMPLETE
 - Phase 7 — Demo:              [x] COMPLETE
-- Phase 8 — Polish:            [ ] NOT STARTED
+- Phase 8 — Polish:            [x] COMPLETE
 
 ## Important Decisions Already Made (do not re-debate these)
 - FAISS for vector search, Neo4j for graph traversal only (not Neo4j vector index)

@@ -38,7 +38,31 @@ poetry install
 ## Quick Start
 
 ```python
-# TBD — Phase 4
+from graphbench.utils.neo4j_client import Neo4jClient
+from graphbench.utils.faiss_client import FAISSClient
+from graphbench.utils.llm_client import LLMClient
+from graphbench.pipelines.graphrag_pipeline import GraphRAGPipeline
+from graphbench.pipelines.gnnrag_pipeline import GNNRAGPipeline
+from graphbench.gnn.model import GATModel
+from graphbench.utils.checkpoint import load_checkpoint
+from pathlib import Path
+
+# Init shared clients
+neo4j = Neo4jClient()          # reads NEO4J_URI / NEO4J_USERNAME / NEO4J_PASSWORD from .env
+faiss = FAISSClient.load()     # reads FAISS_INDEX_PATH from .env
+llm   = LLMClient(backend="hf")
+
+# GraphRAG pipeline
+graphrag = GraphRAGPipeline(neo4j_client=neo4j, faiss_client=faiss, llm_client=llm)
+print(graphrag.answer("Where was Marie Curie born?").predicted_answer)
+
+# GNN-RAG pipeline (requires trained checkpoint + entity embeddings)
+ckpt = load_checkpoint(Path("checkpoints/gat_best.pt"), map_location="cuda")
+model = GATModel()
+model.load_state_dict(ckpt["model_state_dict"])
+gnnrag = GNNRAGPipeline(neo4j_client=neo4j, faiss_client=faiss, llm_client=llm,
+                         gat_model=model, entity_embeddings=embedding_dict)
+print(gnnrag.answer("Where was Marie Curie born?").predicted_answer)
 ```
 
 ---
@@ -53,15 +77,19 @@ poetry install
 
 ## Benchmark Results
 
-> TBD — Phase 5
+500 HotpotQA distractor questions · seed=42 · Mistral-7B-Instruct-v0.2 (fp16) · 60k REBEL triples
 
 | Metric | GraphRAG | GNN-RAG |
-|--------|----------|---------|
-| Exact Match | TBD | TBD |
-| F1 Score | TBD | TBD |
-| Latency (p50) | TBD | TBD |
+|--------|:--------:|:-------:|
+| Exact Match (EM) | 3.2% | **5.0%** |
+| Token F1 | 10.5% | **12.8%** |
+| Latency p50 (ms) | 5,555 | **5,344** |
+| Latency p95 (ms) | 6,388 | **6,199** |
 
-Full results: [docs/benchmark_results.md](docs/benchmark_results.md)
+GNN-RAG outperforms GraphRAG on all four metrics. The gap is largest on bridge questions
+(7.2% vs 3.6% EM), where multi-hop graph traversal benefits most from learned edge scoring.
+
+Full results and per-type breakdown: [docs/benchmark_results.md](docs/benchmark_results.md)
 
 ---
 
