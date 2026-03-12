@@ -14,7 +14,7 @@ HotpotQA Question
                             ▼
                    ┌─────────────────┐
                    │  Neo4j AuraDB   │ (2-hop subgraph)
-                   │  50k triples    │
+                   │  60k triples    │
                    └────────┬────────┘
                             │
               ┌─────────────┴─────────────┐
@@ -30,7 +30,7 @@ HotpotQA Question
                           ▼
                ┌─────────────────────┐
                │  Mistral-7B-Instruct │
-               │  (4-bit quantized)   │
+               │  (fp16, Colab A100)  │
                │  Shared PROMPT_TMPL  │
                └──────────┬──────────┘
                           ▼
@@ -53,4 +53,11 @@ HotpotQA Question
 
 ## Component Details
 
-TBD — updated after Phase 4 implementation.
+| Component | Class | Location | Role |
+|-----------|-------|----------|------|
+| **Neo4jClient** | `Neo4jClient` | `graphbench/utils/neo4j_client.py` | Executes Cypher queries against Neo4j AuraDB Free to extract 2-hop subgraphs around seed entities |
+| **FAISSClient** | `FAISSClient` | `graphbench/utils/faiss_client.py` | Loads a 384-dim `IndexFlatIP` FAISS index; provides `search(vec, k)` for top-K entity lookup |
+| **LLMClient** | `LLMClient` | `graphbench/utils/llm_client.py` | Unified client over Ollama (local Mac dev, Phi-3-mini) and HuggingFace Transformers (Colab GPU, Mistral-7B). Auto-detects the backend. |
+| **CommunityDetector** | `CommunityDetector` | `graphbench/community/detector.py` | Runs Louvain community detection (resolution=0.8) on a NetworkX graph; selects top communities by seed-entity overlap |
+| **GATModel** | `GATModel` | `graphbench/gnn/model.py` | 3-layer GAT encoder (384→256→64→32) with dot-product decoder for link-prediction edge scoring |
+| **Evaluator** | `Evaluator` | `graphbench/benchmark/evaluator.py` | Runs both pipelines on HotpotQA questions; computes EM, token F1, and latency; logs to W&B |

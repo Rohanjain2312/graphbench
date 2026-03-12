@@ -62,6 +62,7 @@ class GNNRAGPipeline(Pipeline):
         self._model = gat_model
         self._entity_embeddings: dict[str, np.ndarray] = entity_embeddings or {}
         self._top_edges = top_edges
+        self._embedder = None  # lazy-loaded once on first call
 
     @property
     def name(self) -> str:
@@ -89,7 +90,14 @@ class GNNRAGPipeline(Pipeline):
         Raises:
             RuntimeError: If required clients (neo4j, faiss, llm, gat_model) are not set.
         """
-        self._check_clients()
+        self._check_clients(
+            [
+                ("neo4j_client", self._neo4j),
+                ("faiss_client", self._faiss),
+                ("llm_client", self._llm),
+                ("gat_model", self._model),
+            ]
+        )
 
         # ── Step 1: embed question → seed entities ──────────────────────
         query_vec = self._embed_question(question)
@@ -159,7 +167,11 @@ class GNNRAGPipeline(Pipeline):
     # ------------------------------------------------------------------
 
     def _embed_question(self, question: str) -> np.ndarray:
-        """Embed question with SentenceTransformer (lazy import).
+        """Embed question with SentenceTransformer (lazy import, cached).
+
+        The SentenceTransformer model is loaded once on the first call and
+        reused for all subsequent questions, avoiding the 500× reload overhead
+        during a full benchmark run.
 
         Args:
             question: Question string to embed.
@@ -167,10 +179,11 @@ class GNNRAGPipeline(Pipeline):
         Returns:
             L2-normalised float32 embedding of shape ``(384,)``.
         """
-        from sentence_transformers import SentenceTransformer  # noqa: PLC0415
+        if self._embedder is None:
+            from sentence_transformers import SentenceTransformer  # noqa: PLC0415
 
-        model = SentenceTransformer(settings.embedding_model)
-        vec = model.encode([question], normalize_embeddings=True)
+            self._embedder = SentenceTransformer(settings.embedding_model)
+        vec = self._embedder.encode([question], normalize_embeddings=True)
         return vec[0].astype(np.float32)
 
     def _indices_to_triples(
@@ -219,32 +232,3 @@ class GNNRAGPipeline(Pipeline):
                 result.append(triple)
 
         return result
-
-    def _check_clients(self) -> None:
-        """Raise RuntimeError if required clients are not injected."""
-        missing = [
-            name
-            for name, attr in [
-                ("neo4j_client", self._neo4j),
-                ("faiss_client", self._faiss),
-                ("llm_client", self._llm),
-                ("gat_model", self._model),
-            ]
-            if attr is None
-        ]
-        if missing:
-            raise RuntimeError(
-                f"GNNRAGPipeline.answer() requires: {', '.join(missing)}. "
-                "Pass them to the constructor."
-            )
-
-    def _empty_result(self, question: str, reason: str) -> PipelineResult:
-        """Return a no-context PipelineResult with 'I don't know.' answer."""
-        logger.warning("GNN-RAG returning empty result: %s", reason)
-        return PipelineResult(
-            question=question,
-            predicted_answer="I don't know.",
-            context_triples=[],
-            pipeline_name=self.name,
-            metadata={"reason": reason},
-        )

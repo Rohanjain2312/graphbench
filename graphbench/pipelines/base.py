@@ -9,9 +9,12 @@ Both GraphRAG and GNN-RAG MUST use PROMPT_TEMPLATE unchanged to ensure
 a fair comparison (same LLM instructions, same output format).
 """
 
+import logging
 from abc import ABC, abstractmethod
 from dataclasses import dataclass, field
 from typing import Any
+
+logger = logging.getLogger(__name__)
 
 # ---------------------------------------------------------------------------
 # Shared prompt — NEVER modify per-pipeline; both pipelines use this exactly.
@@ -87,6 +90,41 @@ class Pipeline(ABC):
             latency_ms will be overwritten by the Evaluator.
         """
         ...
+
+    def _check_clients(self, required: list[tuple[str, Any]]) -> None:
+        """Raise RuntimeError if any required client attribute is None.
+
+        Args:
+            required: List of (name, attr) pairs to validate.
+
+        Raises:
+            RuntimeError: Lists all missing clients by name.
+        """
+        missing = [name for name, attr in required if attr is None]
+        if missing:
+            raise RuntimeError(
+                f"{self.__class__.__name__}.answer() requires: {', '.join(missing)}. "
+                "Pass them to the constructor."
+            )
+
+    def _empty_result(self, question: str, reason: str) -> "PipelineResult":
+        """Return a no-context PipelineResult with 'I don't know.' answer.
+
+        Args:
+            question: The original question string.
+            reason: Reason for the empty result (logged as a warning).
+
+        Returns:
+            PipelineResult with predicted_answer set to ``"I don't know."``.
+        """
+        logger.warning("%s returning empty result: %s", self.name, reason)
+        return PipelineResult(
+            question=question,
+            predicted_answer="I don't know.",
+            context_triples=[],
+            pipeline_name=self.name,
+            metadata={"reason": reason},
+        )
 
     def build_prompt(self, question: str, triples: list[tuple[str, str, str]]) -> str:
         """Format the shared PROMPT_TEMPLATE with retrieved triples as context.

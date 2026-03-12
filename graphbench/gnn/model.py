@@ -2,7 +2,7 @@
 
 Architecture (encoder):
     Layer 1: GATConv(384 →  64, heads=4, concat=True)  → 256-dim per node
-    Layer 2: GATConv(256 →  32, heads=4, concat=True)  → 128-dim per node
+    Layer 2: GATConv(256 →  16, heads=4, concat=True)  →  64-dim per node
     Layer 3: GATConv(128 →  32, heads=4, concat=False) →  32-dim per node
 
 Decoder: dot-product of endpoint embeddings → scalar logit per edge.
@@ -65,15 +65,15 @@ class GATModel(torch.nn.Module):
             concat=True,
             dropout=attn_dropout,
         )
-        # Layer 2: 256 → 32 * 4 = 128
+        # Layer 2: 256 → 16 * 4 = 64
         conv2 = GATConv(
             hidden_channels * heads,
-            out_channels // 2,  # 16 per head → 16*4=64... adjust below
+            out_channels // 2,  # 16 per head, concat=True → 16*4=64
             heads=heads,
             concat=True,
             dropout=attn_dropout,
         )
-        # Layer 3: 64 → 32 (averaged across 4 heads, concat=False)
+        # Layer 3: 64 → 32 (averaged across 4 heads via concat=False)
         conv3 = GATConv(
             (out_channels // 2) * heads,
             out_channels,

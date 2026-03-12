@@ -47,7 +47,8 @@ graphbench/utils/config.py     → single source of truth for all settings
 graphbench/pipelines/base.py   → shared LLM prompt template lives here
 graphbench/benchmark/metrics.py → normalize_answer() is the single source
                                    of truth — import it, never reimplement
-notebooks/graphbench_main.ipynb → ONE notebook, all phases, Drive checkpointed
+notebooks/graphbench_babelscape.ipynb → PRIMARY notebook, all phases, Drive checkpointed
+                                   notebooks/graphbench_main.ipynb → earlier draft, superseded
 
 ## Common Commands
 poetry install                 → install all dependencies

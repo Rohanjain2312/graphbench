@@ -66,6 +66,14 @@ class Settings(BaseSettings):
         default="mistralai/Mistral-7B-Instruct-v0.2",
         description="LLM model name (HuggingFace or Ollama)",
     )
+    ollama_model: str = Field(
+        default="phi3",
+        description="Ollama model for local Mac dev",
+    )
+    ollama_base_url: str = Field(
+        default="http://localhost:11434",
+        description="Ollama API base URL",
+    )
 
     # Paths
     faiss_index_path: Path = Field(

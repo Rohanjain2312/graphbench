@@ -26,10 +26,6 @@ logger = logging.getLogger(__name__)
 
 Backend = Literal["auto", "ollama", "hf"]
 
-# Default Ollama model for local Mac dev
-_OLLAMA_DEFAULT_MODEL = "phi3"
-_OLLAMA_BASE_URL = "http://localhost:11434"
-
 
 class LLMClient:
     """Unified LLM client supporting Ollama (local) and HuggingFace (Colab/GPU).
@@ -117,7 +113,7 @@ class LLMClient:
             (backend_str, model_str) tuple.
         """
         if requested == "ollama":
-            return "ollama", model or _OLLAMA_DEFAULT_MODEL
+            return "ollama", model or settings.ollama_model
 
         if requested == "hf":
             return "hf", model or settings.llm_model
@@ -125,7 +121,7 @@ class LLMClient:
         # "auto": probe Ollama, fall back to HF
         if self._ollama_reachable():
             logger.info("Ollama reachable — using Ollama backend.")
-            return "ollama", model or _OLLAMA_DEFAULT_MODEL
+            return "ollama", model or settings.ollama_model
 
         logger.info("Ollama not reachable — falling back to HuggingFace backend.")
         return "hf", model or settings.llm_model
@@ -136,7 +132,7 @@ class LLMClient:
         try:
             import requests  # noqa: PLC0415
 
-            resp = requests.get(f"{_OLLAMA_BASE_URL}/api/tags", timeout=2)
+            resp = requests.get(f"{settings.ollama_base_url}/api/tags", timeout=2)
             return resp.status_code == 200
         except Exception:
             return False
@@ -170,7 +166,7 @@ class LLMClient:
         }
         try:
             resp = requests.post(
-                f"{_OLLAMA_BASE_URL}/api/generate",
+                f"{settings.ollama_base_url}/api/generate",
                 json=payload,
                 timeout=120,
             )

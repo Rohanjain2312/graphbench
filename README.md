@@ -26,8 +26,24 @@ analysis — runs in a single Google Colab notebook with all output cells pre-po
 
 [![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/Rohanjain2312/graphbench/blob/main/notebooks/graphbench_babelscape.ipynb)
 
-> Recruiters: click the badge above to view the fully executed notebook with results —
-> no account or GPU required to read the outputs.
+---
+
+## How It Works
+
+Both pipelines share the same FAISS entity lookup, Neo4j 2-hop subgraph extraction, and
+Mistral-7B LLM. They differ only in how they select which triples to pass as context.
+
+**Pipeline A — GraphRAG**
+
+Takes the 2-hop neighborhood around relevant entities, groups nodes into communities with
+the Louvain algorithm (resolution=0.8), picks the most relevant community clusters by
+seed-entity overlap, and passes those triples as context to the LLM.
+
+**Pipeline B — GNN-RAG**
+
+Takes the same 2-hop subgraph but scores every edge with a trained 3-layer Graph Attention
+Network (GAT). The top-scoring edges — the paths the GNN thinks matter most — become the
+context for the LLM.
 
 ---
 
@@ -123,12 +139,16 @@ graphbench/
 
 ---
 
-## Requirements
+## Requirements at a Glance
 
-- Python 3.10+
-- Neo4j AuraDB Free (or local Neo4j)
-- GPU recommended for GNN training and LLM inference (Google Colab Pro)
-- See `.env.example` for required environment variables
+| Requirement | Notes |
+|-------------|-------|
+| Python 3.10+ | Required (uses `X \| Y` union syntax) |
+| Neo4j AuraDB Free | Graph storage — free tier is sufficient |
+| FAISS | Vector index — CPU-only, no GPU needed |
+| GPU (optional) | Required for GNN training and Mistral-7B inference; use Google Colab Pro |
+
+See `.env.example` for all required environment variables.
 
 ---
 
