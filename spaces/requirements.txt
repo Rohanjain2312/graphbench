@@ -1,0 +1,5 @@
+graphbench-kg>=0.2.0
+gradio>=4.31.0
+pyvis>=0.3.2
+plotly>=5.22.0
+pandas>=2.2.0
