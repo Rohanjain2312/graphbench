@@ -345,7 +345,6 @@ def build_app():
         theme=gr.themes.Soft(
             primary_hue="blue",
             secondary_hue="purple",
-            font=[gr.themes.GoogleFont("Inter"), "ui-sans-serif", "sans-serif"],
         ),
         css="""
             .gr-button-primary { font-weight: 600; }
